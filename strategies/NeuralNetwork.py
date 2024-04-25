@@ -2,6 +2,13 @@ import backtrader as bt
 import numpy as np
 
 class NeuralNetwork(bt.Strategy):
+    params = (
+        ('w1', 1.33),
+        ('w2', 1.74),
+        ('w3', 0.66),
+        ('w4', 1.03),
+        ('w5', 0.31)
+    )
 
     def __init__(self):
         self.sma = bt.indicators.MovingAverageSimple(self.datas[0], period=15)
@@ -14,8 +21,14 @@ class NeuralNetwork(bt.Strategy):
         self.means = np.zeros(5)
         self.stds = np.ones(5) 
         
-        # Randomize weights with 5 inputs, 1 output
-        self.weights_hidden = np.random.randn(5, 1)
+        # Set weights with 5 inputs, 1 output
+        self.weights_hidden = np.array([
+            self.params.w1,
+            self.params.w2,
+            self.params.w3,
+            self.params.w4,
+            self.params.w5,
+        ])
 
     def sigmoid(self, x):
         """Sigmoid activation function."""
