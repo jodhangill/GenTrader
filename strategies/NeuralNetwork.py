@@ -3,11 +3,35 @@ import numpy as np
 
 class NeuralNetwork(bt.Strategy):
     params = (
-        ('w1', 1.33),
-        ('w2', 1.74),
-        ('w3', 0.66),
-        ('w4', 1.03),
-        ('w5', 0.31)
+        # Weights from input node 1 to hidden nodes
+        ('w_i1_h1', 0.0434),
+        ('w_i1_h2', -0.0749),
+        ('w_i1_h3', -0.0553),
+    
+        # Weights from input node 2 to hidden nodes
+        ('w_i2_h1', -0.0217),
+        ('w_i2_h2', 0.1012),
+        ('w_i2_h3', -0.1401),
+    
+        # Weights from input node 3 to hidden nodes
+        ('w_i3_h1', 0.0285),
+        ('w_i3_h2', 0.0271),
+        ('w_i3_h3', -0.0105),
+    
+        # Weights from input node 4 to hidden nodes
+        ('w_i4_h1', -0.1386),
+        ('w_i4_h2', -0.0597),
+        ('w_i4_h3', -0.3661),
+    
+        # Weights from input node 5 to hidden nodes
+        ('w_i5_h1', -0.0872),
+        ('w_i5_h2', 0.0666),
+        ('w_i5_h3', -0.1449),
+    
+        # Weights from hidden nodes to output node
+        ('w_h1_o1', -0.0019),
+        ('w_h2_o1', -0.1369),
+        ('w_h3_o1', 0.1370)
     )
 
     def __init__(self):
@@ -21,13 +45,19 @@ class NeuralNetwork(bt.Strategy):
         self.means = np.zeros(5)
         self.stds = np.ones(5) 
         
-        # Set weights with 5 inputs, 1 output
+        # Set weights with 5 inputs, 3 hidden nodes
         self.weights_hidden = np.array([
-            self.params.w1,
-            self.params.w2,
-            self.params.w3,
-            self.params.w4,
-            self.params.w5,
+            [self.p.w_i1_h1, self.p.w_i1_h2, self.p.w_i1_h3],
+            [self.p.w_i2_h1, self.p.w_i2_h2, self.p.w_i2_h3],
+            [self.p.w_i3_h1, self.p.w_i3_h2, self.p.w_i3_h3],
+            [self.p.w_i4_h1, self.p.w_i4_h2, self.p.w_i4_h3],
+            [self.p.w_i5_h1, self.p.w_i5_h2, self.p.w_i5_h3]
+        ])
+        # Set weights with 3 hidden nodes, 1 output
+        self.weights_output = np.array([
+            [self.p.w_h1_o1],
+            [self.p.w_h2_o1],
+            [self.p.w_h3_o1]
         ])
 
     def sigmoid(self, x):
@@ -39,8 +69,11 @@ class NeuralNetwork(bt.Strategy):
         # Convert inputs to numpy array for easier computation
         inputs = np.array(inputs)
 
+        # Compute activations of neurons in the hidden layer
+        hidden_activations = self.sigmoid(np.dot(inputs, self.weights_hidden))
+        
         # Compute activations of neurons in the output layer
-        output_activations = self.sigmoid(np.dot(inputs, self.weights_hidden))
+        output_activations = self.sigmoid(np.dot(hidden_activations, self.weights_output))
         
         return output_activations
 
