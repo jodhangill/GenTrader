@@ -6,7 +6,7 @@ import random
 import heapq
 
 class ParameterOptimizer:
-    def __init__(self, strategy, weights, datas, base_mutation_std=0.1, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6):
+    def __init__(self, strategy, weights, datas, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6):
         """
         Initialize the ParameterOptimizer class.
 
@@ -15,6 +15,7 @@ class ParameterOptimizer:
             weights (dict): Weights for performance on each dataset in datas.
             datas (list): List of data to be used for backtest optimization.
             base_mutation_std (float): Standard deviation for the mutation operation.
+            relative_std (bool): Whether mutations use relative standard deviation.
             constraints (dict): Constraints for parameter values.
             cash (int): Starting cash for each backtest.
             commission (float): Commission for trades.
@@ -28,6 +29,7 @@ class ParameterOptimizer:
 
         self.strategy = strategy
         self.base_mutation_std = base_mutation_std
+        self.relative_std = relative_std
         self.constraints = constraints
         self.commission = commission
         self.cash = cash
@@ -131,8 +133,10 @@ class ParameterOptimizer:
 
         mutated_parameters = parameters.copy()
         for param_name, param_value in mutated_parameters.items():
-            mutation_std = self.base_mutation_std * \
-                abs(param_value)  # Scale std by parameter value
+            mutation_std = self.base_mutation_std
+            if param_value != 0 and self.relative_std:
+                # Scale std by parameter value
+                mutation_std = self.base_mutation_std * abs(param_value)
             mutated_parameter = np.random.normal(
                 loc=mutated_parameters[param_name], scale=mutation_std)
             if type(param_value) is int:
@@ -266,7 +270,7 @@ class ParameterOptimizer:
 
     def selection(self, parameter_sets):
         # Return top n parameter sets
-        return heapq.nlargest(self.top_n, parameter_sets)
+        return heapq.nlargest(self.top_n, parameter_sets, key=lambda x: x[0])
 
     def plot(self, parameters, data):
         """
