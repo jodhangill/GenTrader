@@ -4,9 +4,10 @@ import numpy as np
 import backtrader as bt
 import random
 import heapq
+import sys
 
 class ParameterOptimizer:
-    def __init__(self, strategy, weights, datas, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6):
+    def __init__(self, strategy, weights, datas, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1}):
         """
         Initialize the ParameterOptimizer class.
 
@@ -23,6 +24,7 @@ class ParameterOptimizer:
             generation_count (int): Number of generations for optimization.
             population (int): Population size for each generation.
             crossover_rate (float): Probability of crossover operation.
+            print_options (dict): Formatting options for terminal outputs 
         """
         if len(weights) != len(datas):
             raise ValueError("Lengths of 'weights' and 'datas' must be equal")
@@ -39,6 +41,7 @@ class ParameterOptimizer:
         self.crossover_rate = crossover_rate
         self.weights = weights
         self.datas = datas
+        self.print_options = print_options
 
     def set_seed(seed):
         np.random.seed(seed)
@@ -215,6 +218,9 @@ class ParameterOptimizer:
         evaluated_parameters = []
         for params in parameter_sets:
 
+            sys.stdout.write("Evaluating: %d/%d   \r" % (len(evaluated_parameters), len(parameter_sets)))
+            sys.stdout.flush()
+
             cps_values = []  # Cumulative performance scores from each dataset
 
             # Compute CPS for each dataset
@@ -294,6 +300,17 @@ class ParameterOptimizer:
         cerebro.run()
         cerebro.plot()
 
+    def print_param_set(self, param_set, indent):
+        print_count = self.print_options["max_list"]
+        for key, value in param_set.items():
+            print(" "*(4*indent-1), f"{key}: {value}")
+            print_count -= 1
+            if print_count == 0:
+                diff = len(param_set) - self.print_options["max_list"]
+                if diff > 0:
+                    print(" "*(4*indent-1),"...", f"({diff} more)")
+                break
+
     def optimize_parameters(self, base_parameter_set):
         """
         Optimize parameters using genetic algorithm.
@@ -305,23 +322,23 @@ class ParameterOptimizer:
             dict: Fittest parameter set achieved after all generations.
         """
         print("Base Parameter Set")
-        for key, value in base_parameter_set.items():
-            print(" "*3, f"{key}: {value}")
+        print_count = self.print_options["max_list"]
+        self.print_param_set(base_parameter_set, 1)
         parameter_sets = self.init_parameter_sets(base_parameter_set)
         top_parameters = []
         for i in range(self.generation_count):
+            print()
+            print("Generation ", i + 1)
             top_parameters_cps = self.selection(
                 self.evaluate_parameter_sets(parameter_sets))
             top_parameters = [params for _, params in top_parameters_cps]
             parameter_sets = []
             parameter_sets = self.multiply(top_parameters)
+
             self.print_generation(top_parameters_cps, i)
         return top_parameters[0]
 
     def print_generation(self, top_parameters_cps, i):
-        print()
-        print("Generation ", i)
         print(" "*3, "Best CPS: ", top_parameters_cps[0][0])
         print(" "*3, "Parameters")
-        for key, value in top_parameters_cps[0][1].items():
-            print(" "*7, f"{key}: {value}")
+        self.print_param_set(top_parameters_cps[0][1], 2)
