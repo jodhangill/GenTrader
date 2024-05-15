@@ -98,6 +98,8 @@ class NeuralNetwork(bt.Strategy):
 
     def sigmoid(self, x):
         """Sigmoid activation function."""
+        # Avoid overflow and underflow
+        x = np.clip(x, -500, 500)
         return 1 / (1 + np.exp(-x))
 
     def think(self, inputs):
