@@ -8,6 +8,15 @@ import yaml
 
 # Function to import strategy module dynamically
 def import_strategy(strategy):
+    """
+    Import a trading strategy module dynamically.
+
+    Args:
+        strategy (str): Name of the strategy module.
+
+    Returns:
+        class: The imported trading strategy class.
+    """
     module_query = 'strategies.' + strategy
     try:
         strategy_module = importlib.import_module(module_query)
@@ -17,6 +26,15 @@ def import_strategy(strategy):
 
 # Function to parse constraint strings into lambda functions
 def parse_constraints(constraint_strs):
+    """
+    Parse constraint strings into lambda functions.
+
+    Args:
+        constraint_strs (list): List of constraint strings.
+
+    Returns:
+        dict: Dictionary of parsed constraints.
+    """
     constraints = {}
     for constraint in constraint_strs:
         # Split the condition string by whitespace
@@ -48,6 +66,15 @@ def parse_constraints(constraint_strs):
 
 # Function to load stock data from Yahoo Finance
 def load_stock_data(data_references):
+    """
+    Load stock data from Yahoo Finance.
+
+    Args:
+        data_references (list): List of dictionaries containing data references.
+
+    Returns:
+        tuple: A tuple containing lists of stock data and their respective weights.
+    """
     print("Downloading data...")
     datas = []
     weights = []
@@ -64,6 +91,14 @@ def load_stock_data(data_references):
 
 # Function to save optimization results to history
 def save_to_history(params, cps, config):
+    """
+    Save optimization results to history.
+
+    Args:
+        params (dict): Optimized parameters.
+        cps (float): Cumulative performance score.
+        config (dict): Configuration settings.
+    """
     current_datetime = datetime.now()
     folder_path = os.path.join("history/", str(current_datetime.date()) + ' ' + str(
         current_datetime.time()).replace(':', '·').replace('.', '·'))
@@ -85,6 +120,16 @@ def save_to_history(params, cps, config):
 
 # Function to compare the structure of two dictionaries recursively
 def compare_dicts_structure(dict1, dict2):
+    """
+    Compare the structure of two dictionaries recursively.
+
+    Args:
+        dict1 (dict): First dictionary.
+        dict2 (dict): Second dictionary.
+
+    Returns:
+        bool: True if the dictionaries have the same structure, False otherwise.
+    """
     # Base case: if both inputs are not dictionaries, return True if they are equal, otherwise False
     if not isinstance(dict1, dict) or not isinstance(dict2, dict):
         return dict1 == dict2
@@ -103,6 +148,9 @@ def compare_dicts_structure(dict1, dict2):
 
 # Main function to run the optimization process
 def run():
+    """
+    Main function to run the optimization process.
+    """
     # Load config file
     with open('optimizer_config.yaml', 'r') as file:
         config = yaml.safe_load(file)

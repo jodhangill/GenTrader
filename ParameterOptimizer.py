@@ -1,10 +1,10 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function, unicode_literals)
 import numpy as np
 import backtrader as bt
 import heapq
 import sys
 
+# ParameterOptimizer optimizes given parameters using a genetic algorithm
 class ParameterOptimizer:
     def __init__(self, strategy, weights, datas, seed, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1}):
         """
@@ -25,11 +25,12 @@ class ParameterOptimizer:
             crossover_rate (float): Probability of crossover operation.
             print_options (dict): Formatting options for terminal outputs 
         """
+        # Validate data and set random seed
         if len(weights) != len(datas):
             raise ValueError("Lengths of 'weights' and 'datas' must be equal")
-        
         np.random.seed(seed)
 
+        # Set class attributes
         self.strategy = strategy
         self.base_mutation_std = base_mutation_std
         self.relative_std = relative_std
@@ -54,39 +55,11 @@ class ParameterOptimizer:
         Returns:
             list: List of parameter sets.
         """
+        # Initialize with a base parameter set and create variations
         parameter_sets = [base_parameter_set]
-
-        # Create initial population by mutating given base parameter set
         for _ in range(self.population - 1):
             parameter_sets.append(self.mutate_parameters(base_parameter_set))
         return parameter_sets
-
-    def check_constraints(self, parameter_name, parameter_value):
-        """
-        Check if a parameter satisfies all constraints.
-
-        Args:
-            parameter_name (str): Name of the parameter.
-            parameter_value (float): Value of the parameter.
-
-        Returns:
-            bool: True if all constraints are satisfied, False otherwise.
-        """
-        if self.constraints == None:
-            return True
-
-        if parameter_name not in self.constraints:
-            # No constraints defined for this parameter
-            return True
-
-        # Check each constraint for the parameter
-        for constraint in self.constraints[parameter_name]:
-            if not constraint(parameter_value):
-                # Constraint is not satisfied
-                return False
-
-        # All constraints are satisfied
-        return True
 
     def crossover(self, parent1, parent2):
         """
@@ -99,22 +72,14 @@ class ParameterOptimizer:
         Returns:
             tuple: Tuple containing two offspring parameter sets.
         """
-
         # Perform crossover with a certain probability
         if np.random.random() < self.crossover_rate:
             # Choose a random crossover point
             crossover_point = np.random.randint(0, len(parent1))
 
             # Create two offspring by combining the parents' parameters
-            # Extract keys and values from parent dictionaries
-            parent1_items = list(parent1.items())
-            parent2_items = list(parent2.items())
-
-            # Create offspring dictionaries by combining the parents' items
-            offspring1 = dict(
-                parent1_items[:crossover_point] + parent2_items[crossover_point:])
-            offspring2 = dict(
-                parent2_items[:crossover_point] + parent1_items[crossover_point:])
+            offspring1 = dict(list(parent1.items())[:crossover_point] + list(parent2.items())[crossover_point:])
+            offspring2 = dict(list(parent2.items())[:crossover_point] + list(parent1.items())[crossover_point:])
 
             return offspring1, offspring2
         else:
@@ -131,21 +96,46 @@ class ParameterOptimizer:
         Returns:
             dict: Mutated set of parameters.
         """
-
+        # Mutate parameters with random values within constraints
         mutated_parameters = parameters.copy()
         for param_name, param_value in mutated_parameters.items():
-            mutation_std = self.base_mutation_std
-            if param_value != 0 and self.relative_std:
-                # Scale std by parameter value
+            if self.relative_std:
+                # Scale standard deviation
                 mutation_std = self.base_mutation_std * abs(param_value)
-            mutated_parameter = np.random.normal(
-                loc=mutated_parameters[param_name], scale=mutation_std)
+            else:
+                mutation_std = self.base_mutation_std
+
+            # Generate new parameter value from normal distribution
+            mutated_parameter = np.random.normal(loc=mutated_parameters[param_name], scale=mutation_std)
+
             if type(param_value) is int:
                 mutated_parameter = int(np.round(mutated_parameter))
+
             if self.check_constraints(param_name, mutated_parameter):
                 # Only mutate parameter if it satisfies constraints
                 mutated_parameters[param_name] = mutated_parameter
         return mutated_parameters
+
+    def check_constraints(self, parameter_name, parameter_value):
+        """
+        Check if a parameter satisfies all constraints.
+
+        Args:
+            parameter_name (str): Name of the parameter.
+            parameter_value (float): Value of the parameter.
+
+        Returns:
+            bool: True if all constraints are satisfied, False otherwise.
+        """
+        # Check if the parameter value satisfies all constraints
+        if self.constraints == None:
+            return True
+        if parameter_name not in self.constraints:
+            return True
+        for constraint in self.constraints[parameter_name]:
+            if not constraint(parameter_value):
+                return False
+        return True
 
     def multiply(self, top_parameter_sets):
         """
@@ -157,12 +147,13 @@ class ParameterOptimizer:
         Returns:
             list: List of new parameter sets for the next generation.
         """
+        # Perform crossover and mutation operations to create new parameter sets
         crossover_parameter_sets = top_parameter_sets.copy()
 
         i = 0
         j = 1
 
-        # Perform crossover on
+        # Perform crossover on different combinations of parents
         while len(crossover_parameter_sets) < self.population - 1:
             parent1 = top_parameter_sets[(i) % self.top_n]
             parent2 = top_parameter_sets[(i+j) % self.top_n]
@@ -185,8 +176,7 @@ class ParameterOptimizer:
         mutated_parameter_sets = [top_parameter_sets[0]]
 
         for i in range(1, self.population):
-            mutated_parameter_sets.append(
-                self.mutate_parameters(crossover_parameter_sets[i]))
+            mutated_parameter_sets.append(self.mutate_parameters(crossover_parameter_sets[i]))
 
         return mutated_parameter_sets
 
@@ -200,6 +190,7 @@ class ParameterOptimizer:
         Returns:
             float: Cumulative Evaluation Score used for 'fitness'.
         """
+        # Compute a cumulative evaluation score based on provided metrics
         return metrics["sharperatio"]
 
     def evaluate_parameter_sets(self, parameter_sets):
@@ -212,9 +203,10 @@ class ParameterOptimizer:
         Returns:
             list: List of top parameter sets.
         """
-
+        # Evaluate parameter sets based on backtesting metrics
         evaluated_parameters = []
         for params in parameter_sets:
+            cps_values = []
 
             sys.stdout.write("Evaluating: %d/%d   \r" % (len(evaluated_parameters), len(parameter_sets)))
             sys.stdout.flush()
@@ -225,6 +217,7 @@ class ParameterOptimizer:
             for data in self.datas:
                 cerebro = bt.Cerebro()
                 cerebro.addstrategy(self.strategy, **params)
+                
                 # Create a Data Feed
                 data = bt.feeds.PandasData(dataname=data)
                 cerebro.adddata(data)
@@ -273,41 +266,8 @@ class ParameterOptimizer:
         return evaluated_parameters
 
     def selection(self, parameter_sets):
-        # Return top n parameter sets
+        # Return top n parameter sets based on fitness
         return heapq.nlargest(self.top_n, parameter_sets, key=lambda x: x[0])
-
-    def plot(self, parameters, data):
-        """
-        Plot the strategy.
-
-        Args:
-            parameters (dict): Parameters for the strategy.
-            data (pd.DataFrame): Data for the strategy.
-        """
-        cerebro = bt.Cerebro()
-        cerebro.addstrategy(self.strategy, **parameters)
-        # Create a Data Feed
-        data = bt.feeds.PandasData(dataname=data)
-        cerebro.adddata(data)
-
-        cerebro.broker.setcash(self.cash)
-        cerebro.broker.setcommission(self.commission)
-
-        # Add a FixedSize sizer according to the stake
-        cerebro.addsizer(bt.sizers.SizerFix, stake=1)
-        cerebro.run()
-        cerebro.plot()
-
-    def print_param_set(self, param_set, indent):
-        print_count = self.print_options["max_list"]
-        for key, value in param_set.items():
-            print(" "*(4*indent-1), f"{key}: {value}")
-            print_count -= 1
-            if print_count == 0:
-                diff = len(param_set) - self.print_options["max_list"]
-                if diff > 0:
-                    print(" "*(4*indent-1),"...", f"({diff} more)")
-                break
 
     def optimize_parameters(self, base_parameter_set):
         """
@@ -320,23 +280,63 @@ class ParameterOptimizer:
             tuple: (parameters, cps) Fittest parameter set achieved after all generations and its CPS.
         """
         print("Base Parameter Set")
-        print_count = self.print_options["max_list"]
         self.print_param_set(base_parameter_set, 1)
         parameter_sets = self.init_parameter_sets(base_parameter_set)
-        top_parameters = []
-        for i in range(self.generation_count):
-            print()
-            print("Generation ", i + 1)
-            top_parameters_cps = self.selection(
-                self.evaluate_parameter_sets(parameter_sets))
-            top_parameters = [params for _, params in top_parameters_cps]
-            parameter_sets = []
-            parameter_sets = self.multiply(top_parameters)
 
-            self.print_generation(top_parameters_cps, i)
-        return top_parameters_cps[0][1], top_parameters_cps[0][0]
+        # Perform genetic algorithm iterations
+        for generation in range(self.generation_count):
+            print()
+            print("Generation ", generation + 1)
+
+            # Evaluate fitness of parameter sets and select top performers
+            top_parameter_sets_with_cps = self.selection(
+                self.evaluate_parameter_sets(parameter_sets))
+
+            # Extract top parameter sets
+            top_parameter_sets = [params for _, params in top_parameter_sets_with_cps]
+
+            # Generate new parameter sets through crossover and mutation
+            parameter_sets = self.multiply(top_parameter_sets)
+
+            # Print generation statistics
+            self.print_generation(top_parameter_sets_with_cps, generation)
+
+        return top_parameter_sets_with_cps[0][1], top_parameter_sets_with_cps[0][0]
+
+    def plot(self, parameters, data):
+        """
+        Plot the strategy.
+
+        Args:
+            parameters (dict): Parameters for the strategy.
+            data (pd.DataFrame): Data for the strategy.
+        """
+        cerebro = bt.Cerebro()
+        cerebro.addstrategy(self.strategy, **parameters)
+        data = bt.feeds.PandasData(dataname=data)
+        cerebro.adddata(data)
+
+        cerebro.broker.setcash(self.cash)
+        cerebro.broker.setcommission(self.commission)
+
+        cerebro.addsizer(bt.sizers.SizerFix, stake=1)
+        cerebro.run()
+        cerebro.plot()
+
+    def print_param_set(self, param_set, indent):
+        # Print parameter set with indentation
+        print_count = self.print_options["max_list"]
+        for key, value in param_set.items():
+            print(" "*(4*indent-1), f"{key}: {value}")
+            print_count -= 1
+            if print_count == 0:
+                diff = len(param_set) - self.print_options["max_list"]
+                if diff > 0:
+                    print(" "*(4*indent-1),"...", f"({diff} more)")
+                break
 
     def print_generation(self, top_parameters_cps, i):
+        # Print generation statistics
         print(" "*3, "Best CPS: ", top_parameters_cps[0][0])
         print(" "*3, "Parameters")
         self.print_param_set(top_parameters_cps[0][1], 2)
