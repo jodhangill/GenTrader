@@ -2,12 +2,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 import backtrader as bt
-import random
 import heapq
 import sys
 
 class ParameterOptimizer:
-    def __init__(self, strategy, weights, datas, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1}):
+    def __init__(self, strategy, weights, datas, seed, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1}):
         """
         Initialize the ParameterOptimizer class.
 
@@ -28,6 +27,8 @@ class ParameterOptimizer:
         """
         if len(weights) != len(datas):
             raise ValueError("Lengths of 'weights' and 'datas' must be equal")
+        
+        np.random.seed(seed)
 
         self.strategy = strategy
         self.base_mutation_std = base_mutation_std
@@ -42,9 +43,6 @@ class ParameterOptimizer:
         self.weights = weights
         self.datas = datas
         self.print_options = print_options
-
-    def set_seed(seed):
-        np.random.seed(seed)
 
     def init_parameter_sets(self, base_parameter_set):
         """
@@ -103,9 +101,9 @@ class ParameterOptimizer:
         """
 
         # Perform crossover with a certain probability
-        if random.random() < self.crossover_rate:
+        if np.random.random() < self.crossover_rate:
             # Choose a random crossover point
-            crossover_point = random.randint(0, len(parent1))
+            crossover_point = np.random.randint(0, len(parent1))
 
             # Create two offspring by combining the parents' parameters
             # Extract keys and values from parent dictionaries
@@ -319,7 +317,7 @@ class ParameterOptimizer:
             base_parameter_set (dict): Base parameters for optimization.
 
         Returns: 
-            dict: Fittest parameter set achieved after all generations.
+            tuple: (parameters, cps) Fittest parameter set achieved after all generations and its CPS.
         """
         print("Base Parameter Set")
         print_count = self.print_options["max_list"]
@@ -336,7 +334,7 @@ class ParameterOptimizer:
             parameter_sets = self.multiply(top_parameters)
 
             self.print_generation(top_parameters_cps, i)
-        return top_parameters[0]
+        return top_parameters_cps[0][1], top_parameters_cps[0][0]
 
     def print_generation(self, top_parameters_cps, i):
         print(" "*3, "Best CPS: ", top_parameters_cps[0][0])
