@@ -188,8 +188,9 @@ def run():
     crossover_rate = ga["crossover_rate"]
     
     seed = ga["seed"]
-    if not isinstance(seed, (int, float, str, bytes, bytearray)):
-        seed = None
+    if not isinstance(seed, int):
+        # Generate seed based on current time
+        seed = int(datetime.now().strftime("%Y%m%d%H%M%S")) % (2**32)
 
     cash = config["trading"]["starting_cash"]
     commission = config["trading"]["commission"]

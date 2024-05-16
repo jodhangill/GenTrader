@@ -6,7 +6,7 @@ import sys
 
 # ParameterOptimizer optimizes given parameters using a genetic algorithm
 class ParameterOptimizer:
-    def __init__(self, strategy, weights, datas, seed, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1}):
+    def __init__(self, strategy, weights, datas, seed, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1, "detailed_progress": True}):
         """
         Initialize the ParameterOptimizer class.
 
@@ -28,6 +28,7 @@ class ParameterOptimizer:
         # Validate data and set random seed
         if len(weights) != len(datas):
             raise ValueError("Lengths of 'weights' and 'datas' must be equal")
+        print("Seed:", seed)
         np.random.seed(seed)
 
         # Set class attributes
@@ -44,6 +45,9 @@ class ParameterOptimizer:
         self.weights = weights
         self.datas = datas
         self.print_options = print_options
+
+        self.completed_evaluations = 0
+        self.total_evaluations = generation_count*population*len(datas)
 
     def init_parameter_sets(self, base_parameter_set):
         """
@@ -208,8 +212,13 @@ class ParameterOptimizer:
         for params in parameter_sets:
             cps_values = []
 
-            sys.stdout.write("Evaluating: %d/%d   \r" % (len(evaluated_parameters), len(parameter_sets)))
-            sys.stdout.flush()
+            if self.print_options["detailed_progress"]:
+                sys.stdout.write("Evaluating parameter set... (%d/%d completed) \r" % (len(evaluated_parameters), len(parameter_sets)))
+                sys.stdout.flush()
+            else:
+                percentage_completed = (self.completed_evaluations / self.total_evaluations) * 100
+                sys.stdout.write("%.2f%%    \r" % percentage_completed)
+                sys.stdout.flush()
 
             cps_values = []  # Cumulative performance scores from each dataset
 
@@ -249,6 +258,9 @@ class ParameterOptimizer:
                 # Calculate Cumulative performance score of this parameter set on the current dataset
                 cps = self.evaluate_parameters(metrics)
                 cps_values.append(cps)
+                
+                # Update stats
+                self.completed_evaluations += 1
 
             # Sum CPS values according to their respective weights
             weighted_cps = 0
@@ -261,6 +273,11 @@ class ParameterOptimizer:
                     params[key] = value
 
             evaluated_parameters.append((weighted_cps, params))
+
+        if self.print_options["detailed_progress"]:
+            # Clear progress line
+            sys.stdout.write(" "*150 + "\r")
+            sys.stdout.flush()
 
         # Return the top n tuples of (CPS value, parameter set)
         return evaluated_parameters
@@ -279,14 +296,18 @@ class ParameterOptimizer:
         Returns: 
             tuple: (parameters, cps) Fittest parameter set achieved after all generations and its CPS.
         """
-        print("Base Parameter Set")
+        print("Base Parameter Set:")
         self.print_param_set(base_parameter_set, 1)
         parameter_sets = self.init_parameter_sets(base_parameter_set)
+        print()
+        print("Optimization Progress:")
 
         # Perform genetic algorithm iterations
         for generation in range(self.generation_count):
-            print()
-            print("Generation ", generation + 1)
+
+            if self.print_options["detailed_progress"]:
+                print()
+                print('\033[1m' + f"Generation {generation + 1} of {self.generation_count}:" + '\033[0m')
 
             # Evaluate fitness of parameter sets and select top performers
             top_parameter_sets_with_cps = self.selection(
@@ -298,9 +319,11 @@ class ParameterOptimizer:
             # Generate new parameter sets through crossover and mutation
             parameter_sets = self.multiply(top_parameter_sets)
 
-            # Print generation statistics
-            self.print_generation(top_parameter_sets_with_cps, generation)
-
+            if self.print_options["detailed_progress"]:
+                # Print generation statistics
+                self.print_generation(top_parameter_sets_with_cps, generation)
+        
+        print("Done!    ")
         return top_parameter_sets_with_cps[0][1], top_parameter_sets_with_cps[0][0]
 
     def plot(self, parameters, data):
@@ -338,5 +361,5 @@ class ParameterOptimizer:
     def print_generation(self, top_parameters_cps, i):
         # Print generation statistics
         print(" "*3, "Best CPS: ", top_parameters_cps[0][0])
-        print(" "*3, "Parameters")
+        print(" "*3, "Parameters:")
         self.print_param_set(top_parameters_cps[0][1], 2)

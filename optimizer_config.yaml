@@ -33,7 +33,7 @@ trading:
 # Parameters of the genetic optimization algorithm
 genetic_algo_parameters:
   # Number of generations executed for optimization
-  generation_count: 5
+  generation_count: 3
 
   # Number of parameter sets in each generation
   population: 10
@@ -45,23 +45,26 @@ genetic_algo_parameters:
   bast_std: 0.1
 
   # Whether mutations are scaled based on the parameter's magnitude
-  relative_std: false
+  relative_std: False
 
   # Probability of a crossover occurring between two parents
   crossover_rate: 0.6
 
   # Seed used for generating random values (use "None" to generate seed)
-  seed: 123
+  seed: None
 
 
 saving_options:
   # Whether to use best parameters from previous run (true) or default parameters (false) for the initial population
-  load_params: false
+  load_params: True
 
   # Whether to save the best parameters from the run
-  save_params: true
+  save_params: False
 
 
 print_options:
   # Maximum items outputted for each parameter set printed
   max_list: 5
+
+  # true: outputs progress at each generation, false: outputs total progress
+  detailed_progress: True
