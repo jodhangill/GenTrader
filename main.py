@@ -36,6 +36,9 @@ def parse_constraints(constraint_strs):
     Returns:
         dict: Dictionary of parsed constraints.
     """
+    if constraint_strs is None:
+        return {}
+    
     constraints = {}
     for constraint in constraint_strs:
         # Split the condition string by whitespace
