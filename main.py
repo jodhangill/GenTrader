@@ -119,10 +119,10 @@ def save_to_history(params, cps, config):
     with open(folder_path + "/optimizer_config.yaml", 'w') as file:
         yaml.dump(config, file)
 
-# Function to compare the structure of two dictionaries recursively
+# Function to compare the structure of two dictionaries
 def compare_dicts_structure(dict1, dict2):
     """
-    Compare the structure of two dictionaries recursively.
+    Compare the structure of two dictionaries.
 
     Args:
         dict1 (dict): First dictionary.
@@ -131,18 +131,9 @@ def compare_dicts_structure(dict1, dict2):
     Returns:
         bool: True if the dictionaries have the same structure, False otherwise.
     """
-    # Base case: if both inputs are not dictionaries, return True if they are equal, otherwise False
-    if not isinstance(dict1, dict) or not isinstance(dict2, dict):
-        return dict1 == dict2
-
     # Check if the keys of dict1 are the same as the keys of dict2
     if set(dict1.keys()) != set(dict2.keys()):
         return False
-
-    # Recursively compare the structures of the nested dictionaries
-    for key in dict1.keys():
-        if not compare_dicts_structure(dict1[key], dict2[key]):
-            return False
 
     # If all checks passed, return True
     return True
@@ -171,7 +162,7 @@ def run():
         if compare_dicts_structure(loaded_params, params):
             params = loaded_params
         else:
-            print("Could not load last parameters: parameters are not valid for this strategy.")
+            print("Could not load parameters: parameters are not valid for this strategy.")
     
     # Download all stock data
     datas, weights = load_stock_data(config["stock_data"])
@@ -224,6 +215,7 @@ def run():
     if config["saving_options"]["save_params"]:
         save_to_history(best_params, cps, config)
 
+    print("Plotting...")
     # Plot results if specified in config
     optimizer.plot(best_params, datas[0])
 
