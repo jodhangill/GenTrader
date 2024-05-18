@@ -1,4 +1,5 @@
 from ParameterOptimizer import *
+from evaluate import evaluate
 import yfinance as yf
 import importlib
 from datetime import datetime
@@ -199,6 +200,7 @@ def run():
 
     # Set optimizer configuration
     optimizer = ParameterOptimizer(
+        evaluate=evaluate,
         strategy=strategy,
         datas=datas,
         weights=weights,

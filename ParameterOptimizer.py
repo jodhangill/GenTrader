@@ -1,12 +1,13 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import numpy as np
 import backtrader as bt
+from backtrader import TimeFrame
 import heapq
 import sys
 
 # ParameterOptimizer optimizes given parameters using a genetic algorithm
 class ParameterOptimizer:
-    def __init__(self, strategy, weights, datas, seed, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1, "detailed_progress": True}):
+    def __init__(self, strategy, weights, datas, evaluate, seed, base_mutation_std=0.1, relative_std=True, constraints=None, cash=100000, commission=0.0, top_n=3, generation_count=5, population=10, crossover_rate=0.6, print_options={"max_list": -1, "detailed_progress": True}):
         """
         Initialize the ParameterOptimizer class.
 
@@ -14,6 +15,8 @@ class ParameterOptimizer:
             strategy (class): The trading strategy class.
             weights (dict): Weights for performance on each dataset in datas.
             datas (list): List of data to be used for backtest optimization.
+            evaluate (func): Function of performance metrics used for evaluation.
+            seed (number): Seed for random number generation
             base_mutation_std (float): Standard deviation for the mutation operation.
             relative_std (bool): Whether mutations use relative standard deviation.
             constraints (dict): Constraints for parameter values.
@@ -45,6 +48,7 @@ class ParameterOptimizer:
         self.weights = weights
         self.datas = datas
         self.print_options = print_options
+        self.evaluate = evaluate
 
         self.completed_evaluations = 0
         self.total_evaluations = generation_count*population*len(datas)
@@ -184,19 +188,6 @@ class ParameterOptimizer:
 
         return mutated_parameter_sets
 
-    def evaluate_parameters(self, metrics):
-        """
-        Evaluate parameters based on metrics.
-
-        Args:
-            metrics (dict): Metrics for evaluation.
-
-        Returns:
-            float: Cumulative Evaluation Score used for 'fitness'.
-        """
-        # Compute a cumulative evaluation score based on provided metrics
-        return metrics["sharperatio"]
-
     def evaluate_parameter_sets(self, parameter_sets):
         """
         Evaluate multiple sets of parameters and return the top n sets.
@@ -241,22 +232,40 @@ class ParameterOptimizer:
                 cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name="sharpe")
                 cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
                 cerebro.addanalyzer(bt.analyzers.Returns, _name="returns")
+                cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="tradeanalyzer")
+                cerebro.addanalyzer(bt.analyzers.VWR, _name="vwr")
+                cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
+                cerebro.addanalyzer(bt.analyzers.TimeReturn, _name="timereturn")
+                cerebro.addanalyzer(bt.analyzers.AnnualReturn, _name="annualreturn")
+                cerebro.addanalyzer(bt.analyzers.LogReturnsRolling, _name="logreturnsrolling")
+                cerebro.addanalyzer(bt.analyzers.PeriodStats, _name="periodstats")
+                cerebro.addanalyzer(bt.analyzers.SharpeRatio_A, _name="sharperatio_a")
+                cerebro.addanalyzer(bt.analyzers.Calmar, _name="calmar")
+                cerebro.addanalyzer(bt.analyzers.TimeDrawDown, _name="timedrawdown")
+                cerebro.addanalyzer(bt.analyzers.GrossLeverage, _name="grossleverage")
+                cerebro.addanalyzer(bt.analyzers.PositionsValue, _name="positionsvalue")
+                cerebro.addanalyzer(bt.analyzers.PyFolio, _name="pyfolio")
+                cerebro.addanalyzer(bt.analyzers.Transactions, _name="transactions")
 
                 strats = cerebro.run()
                 strat = strats[0]
 
-                # Compile metrics for determining fitness
-                sharpe_ratio = strat.analyzers.sharpe.get_analysis()[
-                    'sharperatio']
-                if sharpe_ratio is None:  # A sharpe ratio could not be derived
-                    sharpe_ratio = -float("inf")
-
-                metrics = {
-                    "sharperatio": sharpe_ratio
-                }
+                # Compile some basic metrics for easier accessibility when implementing evaluate()
+                sharpe_ratio = strat.analyzers.sharpe.get_analysis()['sharperatio']
+                max_drawdown = strat.analyzers.drawdown.get_analysis()['max']['drawdown']
+                total_compound_returns = strat.analyzers.returns.get_analysis()['rtot']
+                vwr = strat.analyzers.vwr.get_analysis()['vwr']
+                sqn = strat.analyzers.sqn.get_analysis()
+                basic_metrics = (
+                    sharpe_ratio,
+                    max_drawdown,
+                    total_compound_returns,
+                    vwr,
+                    sqn
+                )
 
                 # Calculate Cumulative performance score of this parameter set on the current dataset
-                cps = self.evaluate_parameters(metrics)
+                cps = self.evaluate(*basic_metrics, strat.analyzers)
                 cps_values.append(cps)
                 
                 # Update stats
