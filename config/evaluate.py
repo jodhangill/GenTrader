@@ -4,4 +4,6 @@
 def evaluate(sharpe_ratio, max_drawdown, total_compound_returns, vwr, sqn, all_analyzers):
     # Implement the evaluation logic based on provided metrics and analyzers
     # Example: Calculate a composite score considering max drawdown and total compound returns
+    if max_drawdown == 0:
+        return total_compound_returns
     return total_compound_returns/max_drawdown

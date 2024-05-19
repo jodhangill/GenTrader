@@ -1,11 +1,14 @@
 from ParameterOptimizer import *
-from evaluate import evaluate
+from config.evaluate import evaluate
 import yfinance as yf
+import yfinance.shared as shared
 import importlib
 from datetime import datetime
 import os
 import json
 import yaml
+import shutil
+from colorama import init
 
 # Function to import strategy module dynamically
 def import_strategy(strategy):
@@ -21,7 +24,11 @@ def import_strategy(strategy):
     module_query = 'strategies.' + strategy
     try:
         strategy_module = importlib.import_module(module_query)
-        return getattr(strategy_module, strategy)
+        strategy_class = None
+        for _, obj in strategy_module.__dict__.items():
+            if isinstance(obj, type):
+                strategy_class = obj
+        return strategy_class
     except ModuleNotFoundError:
         print(f"Module '{strategy_module}' not found.")
 
@@ -79,7 +86,7 @@ def load_stock_data(data_references):
     Returns:
         tuple: A tuple containing lists of stock data and their respective weights.
     """
-    print("Downloading data...")
+    print('\033[93m' + "Downloading data...")
     datas = []
     weights = []
     for data_ref in data_references:
@@ -89,6 +96,9 @@ def load_stock_data(data_references):
         weight = data_ref['weight']
         # Download stock data and append to lists
         data = yf.download(ticker, start, end)
+        if shared._ERRORS:
+            return None, None
+
         datas.append(data)
         weights.append(weight)
     return datas, weights
@@ -106,11 +116,10 @@ def save_to_history(params, cps, config):
     current_datetime = datetime.now()
     folder_path = os.path.join("history/", str(current_datetime.date()) + ' ' + str(
         current_datetime.time()).replace(':', '·').replace('.', '·'))
-    os.makedirs(folder_path)
-    file_path = folder_path + "/best_params.json"
+    os.makedirs(folder_path + "/config")
 
     # Save best parameters to JSON file
-    with open(folder_path + "/best_params.json", 'w') as file:
+    with open(folder_path + "/config/initial_params.json", 'w') as file:
         json.dump(params, file)
     
     # Save additional run info to JSON file
@@ -119,8 +128,12 @@ def save_to_history(params, cps, config):
         json.dump(run_info, file)
 
     # Save optimizer configuration to YAML file
-    with open(folder_path + "/optimizer_config.yaml", 'w') as file:
+
+    with open(folder_path + "/config/optimizer_config.yaml", 'w') as file:
         yaml.dump(config, file)
+
+    # Copy evaluate.py
+    shutil.copy("config/evaluate.py", folder_path + "/config")
 
 # Function to compare the structure of two dictionaries
 def compare_dicts_structure(dict1, dict2):
@@ -134,6 +147,7 @@ def compare_dicts_structure(dict1, dict2):
     Returns:
         bool: True if the dictionaries have the same structure, False otherwise.
     """
+    os.system('color')
     # Check if the keys of dict1 are the same as the keys of dict2
     if set(dict1.keys()) != set(dict2.keys()):
         return False
@@ -146,12 +160,30 @@ def run():
     """
     Main function to run the optimization process.
     """
+
+    # Print coloured logo ascii art
+    init(autoreset=True)
+    ascii_art = [
+        "                                                                                           ",
+        " ██████╗ ███████╗███╗   ██╗████████ ██████   █████  ██████  ███████ ██████            ╱    ",
+        "██╔════╝ ██╔════╝████╗  ██║   ██    ██   ██ ██   ██ ██   ██ ██      ██   ██       ╱╲_╱     ",
+        "██║  ███╗█████╗  ██╔██╗ ██║   ██    ██████  ███████ ██   ██ █████   ██████       ╱         ",
+        "██║   ██║██╔══╝  ██║╚██╗██║   ██    ██   ██ ██   ██ ██   ██ ██      ██   ██   ╱╲╱          ",
+        "╚██████╔╝███████╗██║ ╚████║   ██    ██   ██ ██   ██ ██████  ███████ ██   ██ _╱             ",
+        " ╚═════╝ ╚══════╝╚═╝  ╚═══╝                                                ╱               ",
+        "__________________________________________________________________________╱                ",
+        "                                                                                           ",
+    ]
+    for line in ascii_art:
+        print('\033[92m' + line[:27] + '\033[91m' + line[27:77] + '\033[92m' + line[77:79] + '\033[91m' + line[79:81] + '\033[92m' + line[81:83] + '\033[91m' + line[83:85]  + '\033[92m' + line[85:] + '\033[0m')
+    
     # Load config file
-    with open('optimizer_config.yaml', 'r') as file:
+    with open('config/optimizer_config.yaml', 'r') as file:
         config = yaml.safe_load(file)
 
     # Set strategy
-    strategy = import_strategy(config["strategy"]["name"])
+    strategy_name = config["strategy"]["name"]
+    strategy = import_strategy(strategy_name)
 
     # Set parameters for initial population
     params = {}
@@ -159,7 +191,7 @@ def run():
         if isinstance(value, (int, float)):  # Filter out non-optimizable parameter types
             params[key] = value
     if (config["saving_options"]["load_params"]):
-        with open("best_params.json", 'r') as file:
+        with open("config/initial_params.json", 'r') as file:
             loaded_params = json.load(file)
         # Check if loaded parameters are valid and replace parameters if valid
         if compare_dicts_structure(loaded_params, params):
@@ -170,6 +202,12 @@ def run():
     # Download all stock data
     datas, weights = load_stock_data(config["stock_data"])
 
+    # Handle download fail
+    if datas is None:
+        print("Download failed!")
+        print("Terminating run...")
+        return
+
     # Set parameter constraints
     constraints = parse_constraints(config["strategy"]["constraints"])
 
@@ -178,7 +216,7 @@ def run():
     generation_count = ga["generation_count"]
     population = ga["population"]
     top_n = ga["selected"]
-    base_mutation_std = ga["bast_std"]
+    base_mutation_std = ga["base_std"]
     relative_std = ga["relative_std"]
     crossover_rate = ga["crossover_rate"]
     
@@ -211,6 +249,10 @@ def run():
         print_options=print_options
     )
 
+    print()
+    print("Strategy: " + '\033[1m' + '\033[92m' + strategy_name + '\033[0m')
+    print("Seed:", seed)
+
     # Perform optimization and get the best parameters and corresponding fitness
     best_params, cps = optimizer.optimize_parameters(params)
 
@@ -218,7 +260,7 @@ def run():
     if config["saving_options"]["save_params"]:
         save_to_history(best_params, cps, config)
 
-    print("Plotting...")
+    print('\033[93m' + "Plotting...")
     # Plot results if specified in config
     optimizer.plot(best_params, datas[0])
 

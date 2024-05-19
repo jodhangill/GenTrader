@@ -31,7 +31,6 @@ class ParameterOptimizer:
         # Validate data and set random seed
         if len(weights) != len(datas):
             raise ValueError("Lengths of 'weights' and 'datas' must be equal")
-        print("Seed:", seed)
         np.random.seed(seed)
 
         # Set class attributes
@@ -118,7 +117,6 @@ class ParameterOptimizer:
 
             if type(param_value) is int:
                 mutated_parameter = int(np.round(mutated_parameter))
-
             if self.check_constraints(param_name, mutated_parameter):
                 # Only mutate parameter if it satisfies constraints
                 mutated_parameters[param_name] = mutated_parameter
@@ -208,13 +206,13 @@ class ParameterOptimizer:
                 sys.stdout.flush()
             else:
                 percentage_completed = (self.completed_evaluations / self.total_evaluations) * 100
-                sys.stdout.write("%.2f%%    \r" % percentage_completed)
+                sys.stdout.write("Progress: %.2f%%    \r" % percentage_completed)
                 sys.stdout.flush()
 
             cps_values = []  # Cumulative performance scores from each dataset
 
             # Compute CPS for each dataset
-            for data in self.datas:
+            for i, data in enumerate(self.datas):
                 cerebro = bt.Cerebro()
                 cerebro.addstrategy(self.strategy, **params)
                 
@@ -246,8 +244,14 @@ class ParameterOptimizer:
                 cerebro.addanalyzer(bt.analyzers.PositionsValue, _name="positionsvalue")
                 cerebro.addanalyzer(bt.analyzers.PyFolio, _name="pyfolio")
                 cerebro.addanalyzer(bt.analyzers.Transactions, _name="transactions")
-
-                strats = cerebro.run()
+                
+                try:
+                    strats = cerebro.run()
+                except:
+                    print(f"Error: Unable to run dataset number {i+1}       ")
+                    print("Try using a different time period")
+                    exit()
+                
                 strat = strats[0]
 
                 # Compile some basic metrics for easier accessibility when implementing evaluate()
@@ -285,7 +289,7 @@ class ParameterOptimizer:
 
         if self.print_options["detailed_progress"]:
             # Clear progress line
-            sys.stdout.write(" "*150 + "\r")
+            sys.stdout.write(" "*50 + "\r")
             sys.stdout.flush()
 
         # Return the top n tuples of (CPS value, parameter set)
@@ -308,15 +312,17 @@ class ParameterOptimizer:
         print("Base Parameter Set:")
         self.print_param_set(base_parameter_set, 1)
         parameter_sets = self.init_parameter_sets(base_parameter_set)
+        
         print()
-        print("Optimization Progress:")
+        print('\033[93m' + "Starting optimization..." + '\033[0m')
+        print("_________________________________________________")
 
         # Perform genetic algorithm iterations
         for generation in range(self.generation_count):
 
             if self.print_options["detailed_progress"]:
                 print()
-                print('\033[1m' + f"Generation {generation + 1} of {self.generation_count}:" + '\033[0m')
+                print('\033[1m' + '\033[4m' + '\033[95m' + f"Generation {generation + 1} of {self.generation_count}:" + '\033[0m')
 
             # Evaluate fitness of parameter sets and select top performers
             top_parameter_sets_with_cps = self.selection(
@@ -332,7 +338,7 @@ class ParameterOptimizer:
                 # Print generation statistics
                 self.print_generation(top_parameter_sets_with_cps, generation)
         
-        print("Done!    ")
+        print('\033[1m' + '\033[93m' + "Done!            " + '\033[0m')
         return top_parameter_sets_with_cps[0][1], top_parameter_sets_with_cps[0][0]
 
     def plot(self, parameters, data):
@@ -358,17 +364,22 @@ class ParameterOptimizer:
     def print_param_set(self, param_set, indent):
         # Print parameter set with indentation
         print_count = self.print_options["max_list"]
+        print_count
         for key, value in param_set.items():
-            print(" "*(4*indent-1), f"{key}: {value}")
-            print_count -= 1
-            if print_count == 0:
+            if print_count == 1:
+                print(" "*(4*indent-1), f"{key}: {value}", end="")
                 diff = len(param_set) - self.print_options["max_list"]
                 if diff > 0:
-                    print(" "*(4*indent-1),"...", f"({diff} more)")
+                    print("...", f"({diff} more)")
+                else:
+                    print()
                 break
+            else:
+                print(" "*(4*indent-1), f"{key}: {value}")
+            print_count -= 1
 
     def print_generation(self, top_parameters_cps, i):
         # Print generation statistics
-        print(" "*3, "Best CPS: ", top_parameters_cps[0][0])
+        print(" "*3, "Best fitness: ", top_parameters_cps[0][0])
         print(" "*3, "Parameters:")
         self.print_param_set(top_parameters_cps[0][1], 2)

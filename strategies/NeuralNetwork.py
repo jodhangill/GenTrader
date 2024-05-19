@@ -2,68 +2,77 @@ import backtrader as bt
 import numpy as np
 
 class NeuralNetwork(bt.Strategy):
+    '''
+    Neural Network Strategy:
+    - Uses a simple neural network with one hidden layer to make trading decisions.
+    - The network has 5 input nodes, 8 hidden nodes, and 1 output node.
+    - Buys when the output of the neural network is greater than 0.5 and sells when it's less than 0.5.
+
+    Parameters:
+    - w_i1_h1, ..., w_i5_h8: Weights from input nodes to hidden nodes (default: 0.0).
+    - w_h1_o1, ..., w_h8_o1: Weights from hidden nodes to output node (default: 0.0).
+    '''
     params = (
         # Weights from input node 1 to hidden nodes
-        ('w_i1_h1', 0.022940338148537076),
-        ('w_i1_h2', -0.07035362318571622),
-        ('w_i1_h3', -0.05301731144816083),
-        ('w_i1_h4', -0.4404651260276612),
-        ('w_i1_h5', -0.1357041147928825),
-        ('w_i1_h6', 0.3823854704227519),
-        ('w_i1_h7', 0.04838633304274786),
-        ('w_i1_h8', -0.18367352065254944),
+        ('w_i1_h1', 0.0),
+        ('w_i1_h2', 0.0),
+        ('w_i1_h3', 0.0),
+        ('w_i1_h4', 0.0),
+        ('w_i1_h5', 0.0),
+        ('w_i1_h6', 0.0),
+        ('w_i1_h7', 0.0),
+        ('w_i1_h8', 0.0),
     
         # Weights from input node 2 to hidden nodes
-        ('w_i2_h1', -0.01319879950625087),
-        ('w_i2_h2', 0.0373477384605171),
-        ('w_i2_h3', -0.06372517623637722),
-        ('w_i2_h4', 1.229058769628469),
-        ('w_i2_h5', -0.01567991823866113),
-        ('w_i2_h6', 0.18671636140895606),
-        ('w_i2_h7', 0.20314328646037375),
-        ('w_i2_h8', -0.007511519507356345),
+        ('w_i2_h1', 0.0),
+        ('w_i2_h2', 0.0),
+        ('w_i2_h3', 0.0),
+        ('w_i2_h4', 0.0),
+        ('w_i2_h5', 0.0),
+        ('w_i2_h6', 0.0),
+        ('w_i2_h7', 0.0),
+        ('w_i2_h8', 0.0),
     
         # Weights from input node 3 to hidden nodes
-        ('w_i3_h1', 0.013563586691604988),
-        ('w_i3_h2', 0.021835282695328324),
-        ('w_i3_h3', -0.008156929514610141),
-        ('w_i3_h4', 0.34986384139905397),
-        ('w_i3_h5', 0.04835900302225245),
-        ('w_i3_h6', 0.2694644287528727),
-        ('w_i3_h7', 0.34249157408931685),
-        ('w_i3_h8', -0.06579828703138527),
+        ('w_i3_h1', 0.0),
+        ('w_i3_h2', 0.0),
+        ('w_i3_h3', 0.0),
+        ('w_i3_h4', 0.0),
+        ('w_i3_h5', 0.0),
+        ('w_i3_h6', 0.0),
+        ('w_i3_h7', 0.0),
+        ('w_i3_h8', 0.0),
     
         # Weights from input node 4 to hidden nodes
-        ('w_i4_h1', -0.2564035695012371),
-        ('w_i4_h2', -0.1342525855970344),
-        ('w_i4_h3', -0.7186776623643717),
-        ('w_i4_h4', -0.36109499687154956),
-        ('w_i4_h5', 0.10320856327749003),
-        ('w_i4_h6', -0.4286492765404204),
-        ('w_i4_h7', 0.019891993003599853),
-        ('w_i4_h8', -0.3841094959261574),
+        ('w_i4_h1', 0.0),
+        ('w_i4_h2', 0.0),
+        ('w_i4_h3', 0.0),
+        ('w_i4_h4', 0.0),
+        ('w_i4_h5', 0.0),
+        ('w_i4_h6', 0.0),
+        ('w_i4_h7', 0.0),
+        ('w_i4_h8', 0.0),
     
         # Weights from input node 5 to hidden nodes
-        ('w_i5_h1', -0.03338862121523939),
-        ('w_i5_h2', 0.05021675330878315),
-        ('w_i5_h3', -0.10494658301325863),
-        ('w_i5_h4', 0.06590230614226508),
-        ('w_i5_h5', -0.16825499947171205),
-        ('w_i5_h6', -0.07077614306361547),
-        ('w_i5_h7', 0.018646747799504634),
-        ('w_i5_h8', -0.06518186325247964),
+        ('w_i5_h1', 0.0),
+        ('w_i5_h2', 0.0),
+        ('w_i5_h3', 0.0),
+        ('w_i5_h4', 0.0),
+        ('w_i5_h5', 0.0),
+        ('w_i5_h6', 0.0),
+        ('w_i5_h7', 0.0),
+        ('w_i5_h8', 0.0),
     
         # Weights from hidden nodes to output node
-        ('w_h1_o1', -0.0009385657505354857),
-        ('w_h2_o1', -0.08171781067309344),
-        ('w_h3_o1', 0.09336333546543321),
-        ('w_h4_o1', -0.5070232276639965),
-        ('w_h5_o1', 0.37483051887805796),
-        ('w_h6_o1', 0.11409691248143092),
-        ('w_h7_o1', -0.26516713993890434),
-        ('w_h8_o1', 0.23847312698953682)
+        ('w_h1_o1', 0.0),
+        ('w_h2_o1', 0.0),
+        ('w_h3_o1', 0.0),
+        ('w_h4_o1', 0.0),
+        ('w_h5_o1', 0.0),
+        ('w_h6_o1', 0.0),
+        ('w_h7_o1', 0.0),
+        ('w_h8_o1', 0.0)
     )
-
 
     def __init__(self):
         self.sma = bt.indicators.MovingAverageSimple(self.datas[0], period=15)
@@ -148,6 +157,7 @@ class NeuralNetwork(bt.Strategy):
 
         outputs = self.think(scaled_inputs)
         
+        self.close()
         if outputs > 0.5:
             self.buy()
         if outputs < 0.5:
