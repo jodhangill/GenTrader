@@ -1,3 +1,6 @@
+# Strategy Template
+# More info here: https://www.backtrader.com/docu/strategy/ 
+
 import backtrader as bt
 
 class MyStrategy(bt.Strategy):

@@ -4,14 +4,14 @@
 # Trading strategy to be optimized
 strategy:
   # Choose a strategy by using the name of the your strategy file in the strategies folder
-  # For example: to use ./strategies/Template.py, enter Template
+  # For example: to use ./strategies/MyStrategy.py, enter MyStrategy
   name: RsiThreshold
   
   # Mutation constraints on parameters (list)
   constraints: 
     # (optional)
     # Format:
-    # PARAMETER_NAME OPERATOR VALUE (separated by spaces)
+    # - [PARAMETER_NAME] [OPERATOR] [VALUE] (separated by spaces)
     - rsi_period > 0
     - rsi_low > 0
     - rsi_high > 0
@@ -21,27 +21,32 @@ strategy:
 # NOTE: If you choose to use multiple datasets, the first one will be used for the final plot
 stock_data:
   # List of data sets
+  # - ticker: Stock ticker. TIP: Lookup stock tickers at https://finance.yahoo.com/lookup/
+  # - start_date: The first date of the stock data
+  # - end_date: The ending date of the stock data
+  # - weight: The respective influence that each data set has on evaluation. Percentage of influence = weight / sum of all weights.  
+  # - starting_cash: The amount of money the strategy will start with for each backtest.  
+  # - commission: The commission rate of trades.
   - ticker: BTC-USD
     start_date: 2017-12-23 # YYYY-MM-DD
     end_date: 2019-01-23 # YYYY-MM-DD
     weight: 0.6 # (float)
+    starting_cash: 100000.0 # (float)
+    commission: 0.01 # (float)
+
   - ticker: ETH-USD
     start_date: 2017-12-23 # YYYY-MM-DD
     end_date: 2019-01-23 # YYYY-MM-DD
     weight: 0.2 # (float)
+    starting_cash: 100000.0 # (float)
+    commission: 0.0 # (float)
+
   - ticker: SPY
     start_date: 2010-01-01 # YYYY-MM-DD
     end_date: 2015-01-07 # YYYY-MM-DD
     weight: 0.2 # (float)
-
-
-trading:
-  # Amount of starting cash for each backtest
-  starting_cash: 100000
-
-  # Amount of commission for each trade
-  commission: 0.0
-
+    starting_cash: 50000.0 # (float)
+    commission: 0.01 # (float)
 
 # Parameters of the genetic optimization algorithm
 genetic_algo_parameters:

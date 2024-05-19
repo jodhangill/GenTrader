@@ -89,19 +89,25 @@ def load_stock_data(data_references):
     print('\033[93m' + "Downloading data...")
     datas = []
     weights = []
+    cashes = []
+    commissions = []
     for data_ref in data_references:
         ticker = data_ref['ticker']
         start = data_ref['start_date']
         end = data_ref['end_date']
         weight = data_ref['weight']
+        cash = data_ref['starting_cash']
+        commission = data_ref['commission']
         # Download stock data and append to lists
         data = yf.download(ticker, start, end)
         if shared._ERRORS:
-            return None, None
+            return None, None, None, None
 
         datas.append(data)
         weights.append(weight)
-    return datas, weights
+        cashes.append(cash)
+        commissions.append(commission)
+    return datas, weights, cashes, commissions
 
 # Function to save optimization results to history
 def save_to_history(params, cps, config):
@@ -200,7 +206,7 @@ def run():
             print("Could not load parameters: parameters are not valid for this strategy.")
     
     # Download all stock data
-    datas, weights = load_stock_data(config["stock_data"])
+    datas, weights, cashes, commissions = load_stock_data(config["stock_data"])
 
     # Handle download fail
     if datas is None:
@@ -225,9 +231,6 @@ def run():
         # Generate seed based on current time
         seed = int(datetime.now().strftime("%Y%m%d%H%M%S")) % (2**32)
 
-    cash = config["trading"]["starting_cash"]
-    commission = config["trading"]["commission"]
-
     print_options = config["print_options"]
 
     # Set optimizer configuration
@@ -244,8 +247,8 @@ def run():
         relative_std=relative_std,
         crossover_rate=crossover_rate,
         seed=seed,
-        cash=cash,
-        commission=commission,
+        cashes=cashes,
+        commissions=commissions,
         print_options=print_options
     )
 
