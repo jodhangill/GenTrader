@@ -16,7 +16,7 @@ A genetic algorithm optimizer for optimizing trading strategies with the Backtra
    - [Configuring Genetic Algorithm](#configuring-genetic-algorithm)
      - [Tips](#tips-for-configuring-genetic-algorithm)
 6. [Saving and Loading](#saving-and-loading)
-   - [Example](#example)
+   - [Save/Load Example](#saveload-example)
 7. [Output Preferences](#output-preferences)
 8. [Evaluation](#evaluation)
    - [Arguments](#arguments)
@@ -70,7 +70,7 @@ python main.py
 
 To add your own strategy, simply add a Python file with your Backtrader strategy into ```GenTrader/strategies/```.  
 
-You can find a template file in ```GenTrader/strategies/template/```.  
+A template file can be found in ```GenTrader/strategies/template/```.  
 
 To use your new strategy, you need to choose it in the [Configuration](#choosing-a-strategy).  
 
@@ -82,11 +82,14 @@ Tip: For more information on how to implement Backtrader strategies, see https:/
 
 Everything you need to configure your optimization can be found in ```GenTrader/config/```:  
 
-- ```evalutate.py``` contains the function used to evaluate the fitness of each parameter set after a backtest. See [Evaluation](#evaluation)
+- ```evalutate.py``` contains the function used to evaluate the fitness of each parameter set after a backtest.
+   - See [Evaluation](#evaluation)
 
-- ```initial_params.json``` stores the initial parameter set when loading non-default parameters. See [Saving and Loading](#saving-and-loading)
+- ```initial_params.json``` stores the initial parameter set when loading non-default parameters.
+   - See [Saving and Loading](#saving-and-loading)
 
-- ```optimizer_config.yaml``` contains various adjustable preferences for the optimization. See [Optimizer Configuration](#optimizer-configuration)  
+- ```optimizer_config.yaml``` contains various adjustable preferences for the optimization.
+   - See [Optimizer Configuration](#optimizer-configuration)  
 
 
 
@@ -96,26 +99,27 @@ Everything you need to configure your optimization can be found in ```GenTrader/
 
 In ```config/optimizer_config.yaml```, choose a strategy from ```strategies/``` by entering its file name (excluding file extension) into ```name: ```.  
 
-For example:  
+For :  
 
 To use the strategy from ```strategies/RsiThreshold.py```, you would enter:  
 
 ```yaml
-name: RsiThreshold
+strategy:
+  name: RsiThreshold
 ```
 
 ---
 
 ### Setting Constraints
 
-In ```config/optimizer_config.yaml```, set constraints on specific parameters by using the format ```- [PARAMETER_NAME] [OPERATOR] [VALUE]```  
+In ```config/optimizer_config.yaml```, set constraints on specific parameters by using the format ```- [PARAMETER NAME] [OPERATOR] [VALUE]```  
 
-For example:  
+For :  
 
 ```yaml
 constraints:
-    - rsi_period > 0
-    - rsi_low < 15
+  - rsi_period > 0
+  - rsi_low < 15
 ```
 
 ---
@@ -144,23 +148,23 @@ To add stock data to the optimization, use the following format:
   commission: [FLOAT VALUE]
 ```
 
-For example:
+For :
 
 ```yaml
 stock_data:
-    - ticker: BTC-USD
-      start_date: 2017-12-23
-      end_date: 2019-01-23
-      weight: 0.6
-      starting_cash: 100000.0
-      commission: 0.01
+  - ticker: BTC-USD
+    start_date: 2017-12-23
+    end_date: 2019-01-23
+    weight: 0.6
+    starting_cash: 100000.0
+    commission: 0.01
 
-    - ticker: ETH-USD
-      start_date: 2017-12-23
-      end_date: 2019-01-23
-      weight: 0.4
-      starting_cash: 50000.0
-      commission: 0.01
+  - ticker: ETH-USD
+    start_date: 2017-12-23
+    end_date: 2019-01-23
+    weight: 0.4
+    starting_cash: 50000.0
+    commission: 0.01
 ```
 
 ---
@@ -181,7 +185,7 @@ In ```config/optimizer_config.yaml```, you will find various values to adjust un
 - ```crossover_rate```: The probability of a crossover occurring between two parents (float)
 - ```seed```: Random number generation seed for reproducing runs (integer) (leave blank for random seed) 
 
-#### Tips For Configuring Genetic Algorithm:
+#### Tips for Configuring Genetic Algorithm:
 
 1. Keep in mind that the runtime is **O(G X P X D)** where:
    G = generation count
@@ -192,8 +196,8 @@ In ```config/optimizer_config.yaml```, you will find various values to adjust un
 3. Having a greater ```population``` than ```generation_count``` is typically more efficient
 4. Generally, ```relative_std``` should be set to ```False``` when parameter values are close to 0
 5. If the best fitness is not improving each generation, slightly increase ```base_std```
-6. If the best fitness is still not improving after trying tip 4, increase ```population``` and ```selected```
-7. If the best fitness is steadily improving during the entire run, increase ```generation_count``` or [rerun with last parameters](#example)
+6. If the best fitness is still not improving after trying tip 5, increase ```population``` and ```selected```
+7. If the best fitness is steadily improving during the entire run, increase ```generation_count``` or [rerun with last parameters](#saveload-example)
 
 ---
 
@@ -211,21 +215,21 @@ You can choose whether to save or load in ```config/optimizer_config.yaml``` und
     1. the best parameters/fitness will be saved to ```history/[date and time]/run_info.json```
     2. configuration will be saved to ```history/[date and time]/config/```
  
-#### Example:
-1. Use the default parameters for our initial population:  
+#### Save/Load Example:
+1. Use the default parameters for our initial population in ```optimizer_config.yaml```:  
 
     ```yaml
     saving_options: 
-        load_params: False
-        save_params:
+      load_params: False
+      save_params:
     ```
 
 2. Save the results of our run:    
 
     ```yaml
     saving_options: 
-        load_params: False
-        save_params: True
+      load_params: False
+      save_params: True
     ```
 
 3. Run the optimizer:  
@@ -249,8 +253,8 @@ You can choose whether to save or load in ```config/optimizer_config.yaml``` und
 
     ```yaml
     saving_options: 
-        load_params: True
-        save_params: True
+      load_params: True
+      save_params: True
     ```
 
 7. Rerun the optimizer:
@@ -263,9 +267,9 @@ You can choose whether to save or load in ```config/optimizer_config.yaml``` und
 
     ```console
     Base Parameter Set:
-        rsi_period: 14
-        rsi_low: 31
-        rsi_high: 57
+       rsi_period: 14
+       rsi_low: 31
+       rsi_high: 57
     ```
 
 ---
