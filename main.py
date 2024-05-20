@@ -124,17 +124,18 @@ def save_to_history(params, cps, config):
         current_datetime.time()).replace(':', '·').replace('.', '·'))
     os.makedirs(folder_path + "/config")
 
-    # Save best parameters to JSON file
-    with open(folder_path + "/config/initial_params.json", 'w') as file:
-        json.dump(params, file)
+    # Copy initial params
+    shutil.copy("config/initial_params.json", folder_path + "/config")
     
     # Save additional run info to JSON file
-    run_info = {"cps": cps}
+    run_info = {
+        "best fitness": cps,
+        "best parameters": params
+    }
     with open(folder_path + "/run_info.json", 'w') as file:
         json.dump(run_info, file)
 
     # Save optimizer configuration to YAML file
-
     with open(folder_path + "/config/optimizer_config.yaml", 'w') as file:
         yaml.dump(config, file)
 
