@@ -292,9 +292,11 @@ You can choose precisely how fitness is measured by implementing the evaluate fu
 5. ```all_analyzers```: A collection holding various built-in analyzers  
     - Usage: ```all_analyzers.[ANALYZER NAME].get_analysis()```  
     - Analyzer names:  
+      - [sharpe](https://www.backtrader.com/docu/analyzers-reference/#sharperatio)
       - [drawdown](https://www.backtrader.com/docu/analyzers-reference/#drawdown)
       - [returns](https://www.backtrader.com/docu/analyzers-reference/#returns)
       - [tradeanalyzer](https://www.backtrader.com/docu/analyzers-reference/#tradeanalyzer)
+      - [sqn](https://www.backtrader.com/docu/analyzers-reference/#sqn)
       - [timereturn](https://www.backtrader.com/docu/analyzers-reference/#timereturn)
       - [annualreturn](https://www.backtrader.com/docu/analyzers-reference/#annualreturn)
       - [periodstats](https://www.backtrader.com/docu/analyzers-reference/#periodstats)
