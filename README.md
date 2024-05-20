@@ -82,9 +82,9 @@ Tip: For more information on how to implement Backtrader strategies, see https:/
 
 Everything you need to configure your optimization can be found in ```GenTrader/config/```:  
 
-- ```evalutate.py``` contains the function used to evaluate the fitness of each parameter set after a backtest
+- ```evalutate.py``` contains the function used to evaluate the fitness of each parameter set after a backtest. See [Evaluation](#evaluation)
 
-- ```initial_params.json``` stores the initial parameter set when loading non-default parameters [Saving and Loading](#saving-and-loading)
+- ```initial_params.json``` stores the initial parameter set when loading non-default parameters. See [Saving and Loading](#saving-and-loading)
 
 - ```optimizer_config.yaml``` contains various adjustable preferences for the optimization. See [Optimizer Configuration](#optimizer-configuration)  
 
