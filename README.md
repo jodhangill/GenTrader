@@ -79,35 +79,35 @@ Starting optimization...
 _________________________________________________
 
 Generation 1 of 5:
-    Best fitness:  0.03679237029241623
+    Best evaluation:  0.03679237029241623
     Parameters:
         rsi_period: 14
         rsi_low: 30
         rsi_high: 61
 
 Generation 2 of 5:
-    Best fitness:  0.03679237029241623
+    Best evaluation:  0.03679237029241623
     Parameters:
         rsi_period: 14
         rsi_low: 30
         rsi_high: 61
 
 Generation 3 of 5:
-    Best fitness:  0.06143053942863584
+    Best evaluation:  0.06143053942863584
     Parameters:
         rsi_period: 13
         rsi_low: 34
         rsi_high: 54
 
 Generation 4 of 5:
-    Best fitness:  0.06359052779073683
+    Best evaluation:  0.06359052779073683
     Parameters:
         rsi_period: 15
         rsi_low: 37
         rsi_high: 51
 
 Generation 5 of 5:
-    Best fitness:  0.08417115175883297
+    Best evaluation:  0.08417115175883297
     Parameters:
         rsi_period: 15
         rsi_low: 36
@@ -135,7 +135,7 @@ Tip: For more information on how to implement Backtrader strategies, see https:/
 
 Everything you need to configure your optimization can be found in ```GenTrader/config/```:  
 
-- ```evalutate.py``` contains the function used to evaluate the fitness of each parameter set after a backtest.
+- ```evalutate.py``` contains the function used to evaluate of each parameter set after a backtest.
    - See [Evaluation](#evaluation)
 
 - ```initial_params.json``` stores the initial parameter set when loading non-default parameters.
@@ -232,7 +232,7 @@ In ```config/optimizer_config.yaml```, you will find various values to adjust un
 
 - ```generation_count```: The number of generations computed before ending optimization (integer)
 - ```population```: The number of parameter sets evaluated per generation (integer)
-- ```selected```: The number of fittest parameter sets that are selected to be parents and used to produce next generation (integer)
+- ```selected```: The number of highest evaluated parameter sets that are selected to be parents and used to produce next generation (integer)
 - ```base_std```: The standard deviation of parameters mutations based on the normal distribution (float)
 - ```relative_std```: Whether the standard deviation is scaled based on a parameter value's magnitude (boolean)
 - ```crossover_rate```: The probability of a crossover occurring between two parents (float)
@@ -248,9 +248,9 @@ In ```config/optimizer_config.yaml```, you will find various values to adjust un
 2. A good rule of thumb is that ```selected``` should be at least 10% of ```population```
 3. Having a greater ```population``` than ```generation_count``` is typically more efficient
 4. Generally, ```relative_std``` should be set to ```False``` when parameter values are close to 0
-5. If the best fitness is not improving each generation, slightly increase ```base_std```
-6. If the best fitness is still not improving after trying tip 5, increase ```population``` and ```selected```
-7. If the best fitness is steadily improving during the entire run, increase ```generation_count``` or [rerun with last parameters](#saveload-example)
+5. If the best evaluation is not improving each generation, slightly increase ```base_std```
+6. If the best evaluation is still not improving after trying tip 5, increase ```population``` and ```selected```
+7. If the best evaluation is steadily improving during the entire run, increase ```generation_count``` or [rerun with last parameters](#saveload-example)
 
 ---
 
@@ -265,7 +265,7 @@ You can choose whether to save or load in ```config/optimizer_config.yaml``` und
 ```save_params```:
 - When set to ```False```, no data will be saved
 - When set to ```True```:
-    1. the best parameters/fitness will be saved to ```history/[date and time]/run_info.json```
+    1. the best parameters and their evaluation will be saved to ```history/[date and time]/run_info.json```
     2. configuration will be saved to ```history/[date and time]/config/```
  
 #### Save/Load Example:
@@ -294,12 +294,12 @@ You can choose whether to save or load in ```config/optimizer_config.yaml``` und
 4. Find the optimized parameters in ```history/[time of last run]/run_info.json```:  
 
     ```json
-    {"best fitness": 0.035756989372899575, "best parameters": {"rsi_period": 14, "rsi_low": 31, "rsi_high": 57}}
+    {"best_param_set": {"evaluation": 0.08417115175883297, "parameters": {"rsi_period": 15, "rsi_low": 36, "rsi_high": 55}}}
     ```
 
 5. Copy this parameter set to ```config/initial_params.json```:  
    ```json
-   {"rsi_period": 14, "rsi_low": 31, "rsi_high": 57}
+   {"rsi_period": 15, "rsi_low": 36, "rsi_high": 55}
    ```
 
 6. Load parameter from last run:  
@@ -339,7 +339,7 @@ In ```config/optimizer_config.yaml```, you can change the format of the output u
 
 ## Evaluation
 
-You can choose precisely how fitness is measured by implementing the evaluate function in ```config/evaluate.py```  
+You can choose precisely how "optimal" is measured by implementing the evaluate function in ```config/evaluate.py```  
 
 ### Arguments  
 

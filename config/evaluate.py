@@ -1,5 +1,5 @@
 # Calculates a cumulative performance score (CPS) using backtesting metrics obtained with a particular parameter configuration.
-# This score serves as an assessment of the parameter set's fitness.
+# This score serves as an assessment of the parameter set's evaluation.
 
 def evaluate(sharpe_ratio, max_drawdown, total_compound_returns, sqn, all_analyzers):
     # Implement the evaluation logic based on provided metrics and analyzers

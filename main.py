@@ -129,8 +129,11 @@ def save_to_history(params, cps, config):
     
     # Save additional run info to JSON file
     run_info = {
-        "best fitness": cps,
-        "best parameters": params
+        "best_param_set":
+        {
+            "evaluation": cps,
+            "parameters": params           
+        }
     }
     with open(folder_path + "/run_info.json", 'w') as file:
         json.dump(run_info, file)
@@ -262,7 +265,7 @@ def run():
     print("Strategy: " + '\033[1m' + '\033[92m' + strategy_name + '\033[0m')
     print("Seed:", seed)
 
-    # Perform optimization and get the best parameters and corresponding fitness
+    # Perform optimization and get the best parameters and corresponding evaluation (CPS)
     best_params, cps = optimizer.optimize_parameters(params)
 
     # Save optimization results to history if specified in config

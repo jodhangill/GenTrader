@@ -293,7 +293,7 @@ class ParameterOptimizer:
         return evaluated_parameters
 
     def selection(self, parameter_sets):
-        # Return top n parameter sets based on fitness
+        # Return top n parameter sets based on evaluation
         return heapq.nlargest(self.top_n, parameter_sets, key=lambda x: x[0])
 
     def optimize_parameters(self, base_parameter_set):
@@ -304,7 +304,7 @@ class ParameterOptimizer:
             base_parameter_set (dict): Base parameters for optimization.
 
         Returns: 
-            tuple: (parameters, cps) Fittest parameter set achieved after all generations and its CPS.
+            tuple: (parameters, cps) Best parameter set achieved after all generations and its evaluation (CPS).
         """
         print("Base Parameter Set:")
         self.print_param_set(base_parameter_set, 1)
@@ -321,7 +321,7 @@ class ParameterOptimizer:
                 print()
                 print('\033[1m' + '\033[4m' + '\033[95m' + f"Generation {generation + 1} of {self.generation_count}:" + '\033[0m')
 
-            # Evaluate fitness of parameter sets and select top performers
+            # Evaluate parameter sets and select top performers
             top_parameter_sets_with_cps = self.selection(
                 self.evaluate_parameter_sets(parameter_sets))
 
@@ -377,6 +377,6 @@ class ParameterOptimizer:
 
     def print_generation(self, top_parameters_cps, i):
         # Print generation statistics
-        print(" "*3, "Best fitness: ", top_parameters_cps[0][0])
+        print(" "*3, "Best evaluation: ", top_parameters_cps[0][0])
         print(" "*3, "Parameters:")
         self.print_param_set(top_parameters_cps[0][1], 2)
