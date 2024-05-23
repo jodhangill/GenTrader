@@ -1,7 +1,7 @@
 ![GenTrader_Logo](https://github.com/jodhangill/GenTrader/assets/87293665/704c83f8-a6cf-4180-82fe-c33104f1d4d7)
 
 # GenTrader
-A genetic algorithm optimizer for optimizing trading strategies with the Backtrader library.
+A genetic algorithm optimizer for optimizing trading strategies with [Backtrader](https://github.com/mementum/backtrader).
 
 ## Table of Contents
 
