@@ -1,4 +1,4 @@
-![GenTrader_Logo](https://github.com/jodhangill/GenTrader/assets/87293665/704c83f8-a6cf-4180-82fe-c33104f1d4d7)
+![alt text](media/GenTrader_Logo.png)
 
 # GenTrader
 A genetic algorithm optimizer for optimizing trading strategies with [Backtrader](https://github.com/mementum/backtrader).
@@ -15,12 +15,12 @@ A genetic algorithm optimizer for optimizing trading strategies with [Backtrader
    - [Choosing Stock Data](#choosing-stock-data)
    - [Configuring Genetic Algorithm](#configuring-genetic-algorithm)
      - [Tips](#tips-for-configuring-genetic-algorithm)
-6. [Saving and Loading](#saving-and-loading)
-   - [Save/Load Example](#saveload-example)
-7. [Output Preferences](#output-preferences)
-8. [Evaluation](#evaluation)
+   - [Saving and Loading](#saving-and-loading)
+     - [Save/Load Example](#saveload-example)
+   - [Output Preferences](#output-preferences)
+6. [Evaluation](#evaluation)
    - [Arguments](#arguments)
-9. [Acknowlegements](#acknowledgements)
+7. [Acknowlegements](#acknowledgements)
 
 ## About
 
@@ -64,7 +64,60 @@ pip install -r requirements.txt
 python main.py
 ```
 
+Example output:  
+```console
+...
 
+Strategy: RsiThreshold
+Seed: 2636283004
+Base Parameter Set:
+    rsi_period: 14
+    rsi_low: 30
+    rsi_high: 70
+
+Starting optimization...
+_________________________________________________
+
+Generation 1 of 5:
+    Best fitness:  0.03679237029241623
+    Parameters:
+        rsi_period: 14
+        rsi_low: 30
+        rsi_high: 61
+
+Generation 2 of 5:
+    Best fitness:  0.03679237029241623
+    Parameters:
+        rsi_period: 14
+        rsi_low: 30
+        rsi_high: 61
+
+Generation 3 of 5:
+    Best fitness:  0.06143053942863584
+    Parameters:
+        rsi_period: 13
+        rsi_low: 34
+        rsi_high: 54
+
+Generation 4 of 5:
+    Best fitness:  0.06359052779073683
+    Parameters:
+        rsi_period: 15
+        rsi_low: 37
+        rsi_high: 51
+
+Generation 5 of 5:
+    Best fitness:  0.08417115175883297
+    Parameters:
+        rsi_period: 15
+        rsi_low: 36
+        rsi_high: 55
+Done!
+Plotting...
+```
+
+![alt text](media/plot.png)
+tkinter is required for plotting.
 
 ## Adding a Strategy
 
@@ -280,6 +333,7 @@ In ```config/optimizer_config.yaml```, you can change the format of the output u
 
 - ```max_list```: The maximum number of items listed for each parameter set (integer)
 - ```detailed_progress```: True: logs progress at each generation, False: logs total progress percentage
+- ```display_logo```: Whether to display GenTrader logo on start of run (boolean)
 
 ---
 
