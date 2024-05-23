@@ -86,7 +86,7 @@ def load_stock_data(data_references):
     Returns:
         tuple: A tuple containing lists of stock data and their respective weights.
     """
-    print('\033[93m' + "Downloading data...")
+    print('\033[93m' + "Downloading data..." + '\033[0m')
     datas = []
     weights = []
     cashes = []
@@ -162,12 +162,7 @@ def compare_dicts_structure(dict1, dict2):
     # If all checks passed, return True
     return True
 
-# Main function to run the optimization process
-def run():
-    """
-    Main function to run the optimization process.
-    """
-
+def print_logo():
     # Print coloured logo ascii art
     init(autoreset=True)
     ascii_art = [
@@ -182,11 +177,21 @@ def run():
         "                                                                                   ",
     ]
     for line in ascii_art:
-        print('\033[92m' + line[:27] + '\033[91m' + line[27:77] + '\033[92m' + line[77:79] + '\033[91m' + line[79:81] + '\033[92m' + line[81:83] + '\033[91m' + line[83:85]  + '\033[92m' + line[85:] + '\033[0m')
-    
+        print('\033[92m' + line[:27] + '\033[91m' + line[27:77] + '\033[92m' + line[77:79] + '\033[91m' + line[79:81] + '\033[92m' + line[81:83] + '\033[0m')
+
+
+# Main function to run the optimization process
+def run():
+    """
+    Main function to run the optimization process.
+    """
+
     # Load config file
     with open('config/optimizer_config.yaml', 'r') as file:
         config = yaml.safe_load(file)
+
+    if config["print_options"]["display_logo"]:
+        print_logo()
 
     # Set strategy
     strategy_name = config["strategy"]["name"]
@@ -264,7 +269,7 @@ def run():
     if config["saving_options"]["save_params"]:
         save_to_history(best_params, cps, config)
 
-    print('\033[93m' + "Plotting...")
+    print('\033[93m' + "Plotting..." + '\033[0m')
     # Plot results if specified in config
     optimizer.plot(best_params, datas[0])
 

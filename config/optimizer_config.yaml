@@ -81,6 +81,9 @@ saving_options:
 
 
 print_options:
+  # Whether to display GenTrader logo on start of run
+  display_logo: True
+
   # Maximum items outputted for each parameter set printed
   max_list: 3
 
