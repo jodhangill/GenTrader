@@ -14,7 +14,7 @@ class ParameterOptimizer:
         Args:
             strategy (class): The trading strategy class.
             weights (dict): Weights for performance on each dataset in datas.
-            datas (list): List of data to be used for backtest optimization.
+            datas (list): List of data feeds to be used for backtest optimization.
             cashes (list): Starting cash values for each data backtest.
             commissions (list): Commission values for each data backtest.
             evaluate (func): Function of performance metrics used for evaluation.
@@ -217,7 +217,6 @@ class ParameterOptimizer:
                 cerebro.addstrategy(self.strategy, **params)
                 
                 # Create a Data Feed
-                data = bt.feeds.PandasData(dataname=data)
                 cerebro.adddata(data)
 
                 cerebro.broker.setcash(self.cashes[i])
@@ -348,7 +347,6 @@ class ParameterOptimizer:
         """
         cerebro = bt.Cerebro()
         cerebro.addstrategy(self.strategy, **parameters)
-        data = bt.feeds.PandasData(dataname=data)
         cerebro.adddata(data)
 
         cerebro.broker.setcash(self.cashes[0])

@@ -86,7 +86,7 @@ def load_stock_data(data_references):
     Returns:
         tuple: A tuple containing lists of stock data and their respective weights.
     """
-    print('\033[93m' + "Downloading data..." + '\033[0m')
+    print('\033[93m' + "Retrieving data..." + '\033[0m')
     datas = []
     weights = []
     cashes = []
@@ -98,15 +98,31 @@ def load_stock_data(data_references):
         weight = data_ref['weight']
         cash = data_ref['starting_cash']
         commission = data_ref['commission']
-        # Download stock data and append to lists
-        data = yf.download(ticker, start, end)
-        if shared._ERRORS:
-            return None, None, None, None
 
-        datas.append(data)
+        # Create unique name for local data file
+        filename = ticker + "_" + str(start) + "_" + str(end) + ".csv"
+        file_path = "data/" + filename
+
+        # Check if data is already downloaded
+        if not os.path.isfile(file_path):
+            # Download stock data and append to lists
+            data = yf.download(ticker, start, end)
+            if shared._ERRORS:
+                # Download failed
+                print()
+                return None, None, None, None
+            # Save data in file
+            os.makedirs("data/", exist_ok=True)
+            data.to_csv(file_path)
+
+        # Convert to backtrader data feed
+        data_feed = bt.feeds.YahooFinanceCSVData(dataname=file_path)
+
+        datas.append(data_feed)
         weights.append(weight)
         cashes.append(cash)
         commissions.append(commission)
+    print('\033[93m' + "Data load successful!" + '\033[0m')
     return datas, weights, cashes, commissions
 
 # Function to save optimization results to history
